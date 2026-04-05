@@ -6,6 +6,8 @@
 // local
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
+DISPLAYMENU DisplayMenu;
+
 uint8_t mac[6];
 
 void begin()
@@ -39,23 +41,23 @@ void begin()
                              {handleReceive(mac, data, len); });
 }
 
-void send(Packet *packet)
+void send(PACKET *packet)
 {
-    esp_now_send(BROADCAST_ADDRESS, (uint8_t *)packet, sizeof(Packet));
+    esp_now_send(BROADCAST_ADDRESS, (uint8_t *)packet, sizeof(PACKET));
 }
 
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
 {
-    if (sizeof(Packet) != len)
+    if (sizeof(PACKET) != len)
     {
         return;
     }
     
-    Packet *packet = (Packet *)data;
+    PACKET *packet = (PACKET *)data;
     handleNetwork(mac, packet);
 }
 
-void handleNetwork(const uint8_t *mac, const Packet *packet)
+void handleNetwork(const uint8_t *mac, const PACKET *packet)
 {
 	// handleResponseBand((InputData*)packet->data);
 	// updateStrip((InputData*)packet->data);
@@ -66,8 +68,80 @@ void updateData()
 
 }
 
-void updateDisplay(MODE mode, uint8_t CHANNEL, bool dmxInput)
+void updateDisplay()
 {
+    unsigned long now = millis();
+    unsigned long lastKnobActivate;
+
+    bool knobHold;
+
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(2);
+    display.setCursor(0,0);
+
+    if (digitalRead(ENCODER_A_PIN))
     
+    if (digitalRead(ENCODER_B_PIN))
+    
+    if (digitalRead(ENCODER_KNOB))
+    {
+        if (knobHold)
+        {
+            if (((now - lastKnobActivate) / 250) % 2)
+            {
+                display.println(DisplayMenu.mode ? F("TX") : F("RX"));
+            }
+            else
+            {
+                display.println(F(" "));
+            }
+
+            if ((now - lastKnobActivate) >= 3000)
+            {
+                DisplayMenu.mode = !DisplayMenu.mode;
+                knobHold = false;
+            }
+        }
+        else
+        {
+            knobHold = true;
+            lastKnobActivate = now;
+        }
+    }
+    else
+    {
+        knobHold = false;
+        display.println(DisplayMenu.mode ? F("TX") : F("RX"));
+    }
+
+    if (DisplayMenu.liveDmxSignal)
+    {
+        display.print(F("ACTIVE"));
+    }
+    else
+    {
+        display.print(((now / 500) % 2) ? F("NO DATA") : F(" "));
+    }
+    
+    display.drawRoundRect(((SCREEN_WIDTH)-(SCREEN_WIDTH / 3)), 0, (SCREEN_WIDTH / 3), SCREEN_HEIGHT, 4, SSD1306_WHITE);
+
+    display.setTextSize(3);
+    display.setCursor(100, 4);
+
+    if (DisplayMenu.selectUniverse == DisplayMenu.liveUniverse)
+    {
+        display.print(DisplayMenu.liveUniverse);
+    }
+    else if ((now / 500) % 2)
+    {
+        display.print(DisplayMenu.selectUniverse);
+    }
+
+    display.display();
+}
+
+void handleEncoder()
+{
 }
 

@@ -10,18 +10,12 @@
 const uint8_t NETWORK_CHANNEL = 2;
 const uint8_t BROADCAST_ADDRESS[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-typedef enum : bool
-{
-    SENDER,
-    RECEIVER
-} MODE;
-
 typedef struct
 {
-    MODE mode;
+    bool mode; // 0: RECEIVER 1:TRANSMITTER - dont use an enum!
     uint8_t universe;
     uint8_t data[512];
-} Packet;
+} PACKET;
 
 // MAX485
 #define MAX485_MODE_PIN 2
@@ -36,3 +30,18 @@ typedef struct
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
+
+#define FLASH_RATE 500
+
+typedef struct
+{
+    bool mode; // 0: RECEIVER 1:TRANSMITTER - dont use an enum!
+    uint8_t liveUniverse;
+    uint8_t selectUniverse;
+    bool liveDmxSignal;
+} DISPLAYMENU;
+
+// Rotary encoder
+#define ENCODER_A_PIN 50
+#define ENCODER_B_PIN 51
+#define ENCODER_KNOB 52
