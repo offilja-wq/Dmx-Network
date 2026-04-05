@@ -3,11 +3,14 @@
 #include "function.h"
 #include "config.h"
 
+// local
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+
 uint8_t mac[6];
 
 void begin()
 {
-    Serial.begin(115200);
+    display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
 
     WiFi.mode(WIFI_STA);
     esp_wifi_set_channel(NETWORK_CHANNEL, WIFI_SECOND_CHAN_NONE);
@@ -58,29 +61,13 @@ void handleNetwork(const uint8_t *mac, const Packet *packet)
 	// updateStrip((InputData*)packet->data);
 }
 
-
-char *macToString(const uint8_t *mac)
+void updateData()
 {
-    static char macStr[18];
-    sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return macStr;
+
 }
 
-void stringToMac(const char *str, uint8_t *mac)
+void updateDisplay(MODE mode, uint8_t CHANNEL, bool dmxInput)
 {
-    if (!str || !mac) return;
-    sscanf(str, "%02X:%02X:%02X:%02X:%02X:%02X", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-}
-
-char *packetToString(const void *packet, size_t size)
-{
-    static char packetStr[128];
-    const uint8_t *data = (const uint8_t *)packet;
-
-    for (size_t i = 0; i < size; i++) {
-        sprintf(&packetStr[i * 3], "%02X ", data[i]);
-    }
-
-    return packetStr;
+    
 }
 

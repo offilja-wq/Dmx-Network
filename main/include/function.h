@@ -4,9 +4,9 @@
 
 #include "config.h"
 
-#include <WiFi.h>
-#include <esp_wifi.h>
-#include <esp_now.h>
+// #include <WiFi.h>
+// #include <esp_wifi.h>
+// #include <esp_now.h>
 
 void begin();
 
@@ -16,8 +16,6 @@ void handleReceive(const uint8_t *mac, const uint8_t *data, int len);
 
 void handleNetwork(const uint8_t *mac, const Packet *packet);
 
-char *macToString(const uint8_t *mac);
+void updateData();
 
-void stringToMac(const char *str, uint8_t *mac);
-
-char *packetToString(const void *packet, size_t size);
+void updateDisplay(MODE mode, uint8_t CHANNEL, bool dmxInput);

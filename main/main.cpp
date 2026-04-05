@@ -5,10 +5,10 @@
 
 void setup()
 {
-
+    begin();
 }
 
 void loop()
 {
-  
+    updateData();
 }
