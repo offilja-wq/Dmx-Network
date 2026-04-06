@@ -12,12 +12,10 @@ void begin();
 
 void setMode(MODE input);
 
-void send(PACKET *packet);
-
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len);
 
 void handleSend();
 
-void updateDisplay();
+void send(PACKET *packet);
 
-void handleEncoder();
+void updateDisplay();

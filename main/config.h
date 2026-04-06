@@ -25,10 +25,9 @@ typedef struct
 
 // MAX485
 #include <DMXSerial.h>
+// #include <uart.h>
 
-#define MAX485_MODE_PIN 6
-
-// Display
+// SSD1306
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -49,7 +48,14 @@ typedef struct
     bool liveDmxSignal;
 } DISPLAYMENU;
 
-// Rotary encoder
-#define ENCODER_A_PIN 50
-#define ENCODER_B_PIN 51
-#define ENCODER_KNOB 52
+
+// GPIO
+
+#define MAX485_MODE_PIN 6
+// MAX485: RO(18), DI(17)
+
+#define ENCODER_A_PIN 2
+#define ENCODER_B_PIN 3
+#define ENCODER_KNOB 1
+
+// SSD1306: SDA(33), SCL(35)

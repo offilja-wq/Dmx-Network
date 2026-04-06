@@ -9,6 +9,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 DISPLAYMENU DisplayMenu;
 
 uint8_t mac[6];
+bool knobHold;
 
 void begin()
 {
@@ -26,7 +27,6 @@ void begin()
     broadcastPeer.encrypt = false;
     memcpy(broadcastPeer.peer_addr, BROADCAST_ADDRESS, sizeof(BROADCAST_ADDRESS));
 
-    // Check band activatie
     if ((esp_now_add_peer(&broadcastPeer) != ESP_OK )|| (esp_now_init() != ESP_OK))
     {
         return;
@@ -34,11 +34,14 @@ void begin()
 
     WiFi.macAddress(mac);
 
-    // Zet data in register met activatie functie
     esp_now_register_recv_cb([](const uint8_t *mac, const uint8_t *data, int len)
                              {handleReceive(mac, data, len); });
 
+
+    // uart_set_pin(1, MAX485_DI, MAX485_RO, 18, 19);
+
     pinMode(MAX485_MODE_PIN, OUTPUT);
+    pinMode(15, OUTPUT);
 
     display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
 }
@@ -53,11 +56,6 @@ void setMode(MODE input)
     digitalWrite(MAX485_MODE_PIN, input);
 
     DMXSerial.init(input ? DMXReceiver : DMXController);
-}
-
-void send(PACKET *packet)
-{
-    esp_now_send(BROADCAST_ADDRESS, (uint8_t *)packet, sizeof(PACKET));
 }
 
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
@@ -82,28 +80,31 @@ void handleSend()
 {
     if (DisplayMenu.mode != TRANSMITTER)
         return;
+
+    PACKET Newpacket;
+
+    setMode(DisplayMenu.mode);
     
-    digitalWrite(MAX485_MODE_PIN, DisplayMenu.mode);
+    Newpacket.mode = DisplayMenu.mode;
+    Newpacket.universe = DisplayMenu.mode;
 
-    if (DisplayMenu.mode = RECEIVER)
+    for (int i = 1; i <= 512; i++)
     {
-        for (int i = 0; i <= 512; i++)
-        {
-
-        }
+        Newpacket.data[i] = DMXSerial.read(i);
     }
-    else
-    {
 
-    }
+    send(&Newpacket);
+}
+
+void send(PACKET *packet)
+{
+    esp_now_send(BROADCAST_ADDRESS, (uint8_t *)packet, sizeof(PACKET));
 }
 
 void updateDisplay()
 {
     unsigned long now = millis();
     unsigned long lastKnobActivate;
-
-    bool knobHold;
 
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
@@ -119,23 +120,20 @@ void updateDisplay()
     {
         
     }
-    
+
     if (digitalRead(ENCODER_KNOB))
     {
         if (knobHold)
         {
-            if (((now - lastKnobActivate) / 250) % 2)
+            if (((now * 2) / FLASH_RATE) % 2)
             {
-                display.println(DisplayMenu.mode ? F("TX") : F("RX"));
+                display.print(DisplayMenu.mode ? F("TX") : F("RX"));
             }
-            else
+            // digitalWrite(15, (((now * 2) / FLASH_RATE) % 2));
+        
+            if ((now - lastKnobActivate) > 3000)
             {
-                display.println(F(" "));
-            }
-
-            if ((now - lastKnobActivate) >= 3000)
-            {
-                DisplayMenu.mode = DisplayMenu.mode ? RECEIVER : TRANSMITTER;
+                DisplayMenu.mode = (DisplayMenu.mode == TRANSMITTER) ? RECEIVER : TRANSMITTER;
                 knobHold = false;
             }
         }
@@ -148,16 +146,18 @@ void updateDisplay()
     else
     {
         knobHold = false;
-        display.println(DisplayMenu.mode ? F("TX") : F("RX"));
+        display.print(DisplayMenu.mode ? F("TX") : F("RX"));
     }
+
+    display.setCursor(0, 16);
 
     if (DisplayMenu.liveDmxSignal)
     {
         display.print(F("ACTIVE"));
     }
-    else
+    else if ((now / 500) % 2)
     {
-        display.print(((now / 500) % 2) ? F("NO DATA") : F(" "));
+        display.print(F("NO DATA"));
     }
     
     display.drawRoundRect(((SCREEN_WIDTH)-(SCREEN_WIDTH / 3)), 0, (SCREEN_WIDTH / 3), SCREEN_HEIGHT, 4, SSD1306_WHITE);
@@ -169,16 +169,11 @@ void updateDisplay()
     {
         display.print(DisplayMenu.liveUniverse);
     }
-    else if ((now / 500) % 2)
+    else if ((now / FLASH_RATE) % 2)
     {
         display.print(DisplayMenu.selectUniverse);
     }
 
     display.display();
-}
-
-void handleEncoder()
-{
-
 }
 
