@@ -24,10 +24,10 @@ void _DMXTransmitted();
 
 
 // These functions all exist in the processor specific implementations:
-void _DMX_init();
+// void _DMX_init();
 // void _DMX_setMode();
-void _DMX_writeByte(uint8_t data);
-void _DMX_flush();
+// void _DMX_writeByte(uint8_t data);
+// void _DMX_flush();
 
 
 // ----- Serial UART Modes -----
@@ -117,6 +117,147 @@ DMXSerialClass DMXSerial;
 #define _SFR_MEM8(mem_addr) _MMIO_BYTE(mem_addr)
 
 
+#define OCR1BL _SFR_MEM8(0x8A)
+#define OCR1BL0 0
+#define OCR1BL1 1
+#define OCR1BL2 2
+#define OCR1BL3 3
+#define OCR1BL4 4
+#define OCR1BL5 5
+#define OCR1BL6 6
+#define OCR1BL7 7
+
+#define OCR1BH _SFR_MEM8(0x8B)
+#define OCR1BH0 0
+#define OCR1BH1 1
+#define OCR1BH2 2
+#define OCR1BH3 3
+#define OCR1BH4 4
+#define OCR1BH5 5
+#define OCR1BH6 6
+#define OCR1BH7 7
+
+#define TCCR2A _SFR_MEM8(0xB0)
+#define WGM20 0
+#define WGM21 1
+#define COM2B0 4
+#define COM2B1 5
+#define COM2A0 6
+#define COM2A1 7
+
+#define TCCR2B _SFR_MEM8(0xB1)
+#define CS20 0
+#define CS21 1
+#define CS22 2
+#define WGM22 3
+#define FOC2B 6
+#define FOC2A 7
+
+#define TCNT2 _SFR_MEM8(0xB2)
+#define TCNT2_0 0
+#define TCNT2_1 1
+#define TCNT2_2 2
+#define TCNT2_3 3
+#define TCNT2_4 4
+#define TCNT2_5 5
+#define TCNT2_6 6
+#define TCNT2_7 7
+
+#define OCR2A _SFR_MEM8(0xB3)
+#define OCR2_0 0
+#define OCR2_1 1
+#define OCR2_2 2
+#define OCR2_3 3
+#define OCR2_4 4
+#define OCR2_5 5
+#define OCR2_6 6
+#define OCR2_7 7
+
+#define OCR2B _SFR_MEM8(0xB4)
+#define OCR2_0 0
+#define OCR2_1 1
+#define OCR2_2 2
+#define OCR2_3 3
+#define OCR2_4 4
+#define OCR2_5 5
+#define OCR2_6 6
+#define OCR2_7 7
+
+#define ASSR _SFR_MEM8(0xB6)
+#define TCR2BUB 0
+#define TCR2AUB 1
+#define OCR2BUB 2
+#define OCR2AUB 3
+#define TCN2UB 4
+#define AS2 5
+#define EXCLK 6
+
+#define TWBR _SFR_MEM8(0xB8)
+#define TWBR0 0
+#define TWBR1 1
+#define TWBR2 2
+#define TWBR3 3
+#define TWBR4 4
+#define TWBR5 5
+#define TWBR6 6
+#define TWBR7 7
+
+#define TWSR _SFR_MEM8(0xB9)
+#define TWPS0 0
+#define TWPS1 1
+#define TWS3 3
+#define TWS4 4
+#define TWS5 5
+#define TWS6 6
+#define TWS7 7
+
+#define TWAR _SFR_MEM8(0xBA)
+#define TWGCE 0
+#define TWA0 1
+#define TWA1 2
+#define TWA2 3
+#define TWA3 4
+#define TWA4 5
+#define TWA5 6
+#define TWA6 7
+
+#define TWDR _SFR_MEM8(0xBB)
+#define TWD0 0
+#define TWD1 1
+#define TWD2 2
+#define TWD3 3
+#define TWD4 4
+#define TWD5 5
+#define TWD6 6
+#define TWD7 7
+
+#define TWCR _SFR_MEM8(0xBC)
+#define TWIE 0
+#define TWEN 2
+#define TWWC 3
+#define TWSTO 4
+#define TWSTA 5
+#define TWEA 6
+#define TWINT 7
+
+#define TWAMR _SFR_MEM8(0xBD)
+#define TWAM0 0
+#define TWAM1 1
+#define TWAM2 2
+#define TWAM3 3
+#define TWAM4 4
+#define TWAM5 5
+#define TWAM6 6
+
+#define UCSR0A _SFR_MEM8(0xC0)
+#define MPCM0 0
+#define U2X0 1
+#define UPE0 2
+#define DOR0 3
+#define FE0 4
+#define UDRE0 5
+#define TXC0 6
+#define RXC0 7
 
 #define UCSR0B _SFR_MEM8(0xC1)
 #define TXB80 0
@@ -140,12 +281,6 @@ DMXSerialClass DMXSerial;
 #define UMSEL00 6
 #define UMSEL01 7
 
-#define UBRR0H _SFR_MEM8(0xC5)
-#define UBRR0_8 0
-#define UBRR0_9 1
-#define UBRR0_10 2
-#define UBRR0_11 3
-
 #define UBRR0L _SFR_MEM8(0xC4)
 #define UBRR0_0 0
 #define UBRR0_1 1
@@ -155,6 +290,22 @@ DMXSerialClass DMXSerial;
 #define UBRR0_5 5
 #define UBRR0_6 6
 #define UBRR0_7 7
+
+#define UBRR0H _SFR_MEM8(0xC5)
+#define UBRR0_8 0
+#define UBRR0_9 1
+#define UBRR0_10 2
+#define UBRR0_11 3
+
+#define UDR0 _SFR_MEM8(0xC6)
+#define UDR0_0 0
+#define UDR0_1 1
+#define UDR0_2 2
+#define UDR0_3 3
+#define UDR0_4 4
+#define UDR0_5 5
+#define UDR0_6 6
+#define UDR0_7 7
 
 #define UCSRnA UCSR0A
 #define RXCn RXC0
@@ -182,6 +333,13 @@ DMXSerialClass DMXSerial;
 
 const int32_t _DMX_dmxPreScale = CalcPreScale(DMXSPEED); // BAUD prescale factor for DMX speed.
 const int32_t _DMX_breakPreScale = CalcPreScale(BREAKSPEED); // BAUD prescale factor for BREAK speed.
+
+// initialize mode independent registers.
+void _DMX_init()
+{
+  // 04.06.2012: use normal speed operation
+  UCSRnA = 0;
+} // _DMX_init()
 
 /// Initialize the Hardware UART serial port registers to the required mode.
 void _DMX_setMode(DMXUARTMode mode)
@@ -224,10 +382,20 @@ void _DMX_setMode(DMXUARTMode mode)
   } // if
 } // _DMX_setMode()
 
+inline void _DMX_writeByte(uint8_t data)
+{
+  // putting data into buffer sends the data
+  UDRn = data;
+} // _DMX_writeByte
 
-
-
-
+// flush all incomming data packets in the queue
+void _DMX_flush()
+{
+  uint8_t voiddata;
+  while (UCSRnA & (1 << RXCn)) {
+    voiddata = UDRn; // get data
+  }
+}
 
 // ----- Class implementation -----
 
