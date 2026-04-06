@@ -10,15 +10,23 @@
 const uint8_t NETWORK_CHANNEL = 2;
 const uint8_t BROADCAST_ADDRESS[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+typedef enum : bool
+{
+    RECEIVER,
+    TRANSMITTER
+} MODE;
+
 typedef struct
 {
-    bool mode; // 0: RECEIVER 1:TRANSMITTER - dont use an enum!
+    MODE mode;
     uint8_t universe;
     uint8_t data[512];
 } PACKET;
 
 // MAX485
-#define MAX485_MODE_PIN 2
+#include <DMXSerial.h>
+
+#define MAX485_MODE_PIN 6
 
 // Display
 #include <SPI.h>
@@ -35,7 +43,7 @@ typedef struct
 
 typedef struct
 {
-    bool mode; // 0: RECEIVER 1:TRANSMITTER - dont use an enum!
+    MODE mode;
     uint8_t liveUniverse;
     uint8_t selectUniverse;
     bool liveDmxSignal;

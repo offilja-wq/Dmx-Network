@@ -12,8 +12,6 @@ uint8_t mac[6];
 
 void begin()
 {
-    display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
-
     WiFi.mode(WIFI_STA);
     esp_wifi_set_channel(NETWORK_CHANNEL, WIFI_SECOND_CHAN_NONE);
     WiFi.setSleep(false);
@@ -29,7 +27,7 @@ void begin()
     memcpy(broadcastPeer.peer_addr, BROADCAST_ADDRESS, sizeof(BROADCAST_ADDRESS));
 
     // Check band activatie
-    if (esp_now_add_peer(&broadcastPeer) != ESP_OK)
+    if ((esp_now_add_peer(&broadcastPeer) != ESP_OK )|| (esp_now_init() != ESP_OK))
     {
         return;
     }
@@ -39,6 +37,22 @@ void begin()
     // Zet data in register met activatie functie
     esp_now_register_recv_cb([](const uint8_t *mac, const uint8_t *data, int len)
                              {handleReceive(mac, data, len); });
+
+    pinMode(MAX485_MODE_PIN, OUTPUT);
+
+    display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
+}
+
+void setMode(MODE input)
+{
+    MODE Currentmode;
+
+    if (Currentmode != input)
+        return;
+    
+    digitalWrite(MAX485_MODE_PIN, input);
+
+    DMXSerial.init(input ? DMXReceiver : DMXController);
 }
 
 void send(PACKET *packet)
@@ -47,25 +61,41 @@ void send(PACKET *packet)
 }
 
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
-{
-    if (sizeof(PACKET) != len)
-    {
+{    
+    if ((DisplayMenu.mode != RECEIVER) || (sizeof(PACKET) != len))
         return;
-    }
     
     PACKET *packet = (PACKET *)data;
-    handleNetwork(mac, packet);
+
+    if ((packet->mode == TRANSMITTER) && (packet->universe == DisplayMenu.liveUniverse))
+    {
+        setMode(DisplayMenu.mode);
+
+        for (int i = 1; i <= 512; i++)
+        {
+            DMXSerial.write(3, packet->data[i]);
+        }
+    }
 }
 
-void handleNetwork(const uint8_t *mac, const PACKET *packet)
+void handleSend()
 {
-	// handleResponseBand((InputData*)packet->data);
-	// updateStrip((InputData*)packet->data);
-}
+    if (DisplayMenu.mode != TRANSMITTER)
+        return;
+    
+    digitalWrite(MAX485_MODE_PIN, DisplayMenu.mode);
 
-void updateData()
-{
+    if (DisplayMenu.mode = RECEIVER)
+    {
+        for (int i = 0; i <= 512; i++)
+        {
 
+        }
+    }
+    else
+    {
+
+    }
 }
 
 void updateDisplay()
@@ -81,8 +111,14 @@ void updateDisplay()
     display.setCursor(0,0);
 
     if (digitalRead(ENCODER_A_PIN))
+    {
+
+    }
     
     if (digitalRead(ENCODER_B_PIN))
+    {
+        
+    }
     
     if (digitalRead(ENCODER_KNOB))
     {
@@ -99,7 +135,7 @@ void updateDisplay()
 
             if ((now - lastKnobActivate) >= 3000)
             {
-                DisplayMenu.mode = !DisplayMenu.mode;
+                DisplayMenu.mode = DisplayMenu.mode ? RECEIVER : TRANSMITTER;
                 knobHold = false;
             }
         }
@@ -143,5 +179,6 @@ void updateDisplay()
 
 void handleEncoder()
 {
+
 }
 
