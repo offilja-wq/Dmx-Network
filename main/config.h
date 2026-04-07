@@ -42,7 +42,6 @@ typedef struct
 
 typedef struct
 {
-    MODE mode;
     uint8_t liveUniverse;
     uint8_t selectUniverse;
     bool liveDmxSignal;
@@ -51,11 +50,11 @@ typedef struct
 
 // GPIO
 
-#define MAX485_MODE_PIN 6
 // MAX485: RO(18), DI(17)
+#define MAX485_MODE_PIN 6
 
-#define ENCODER_A_PIN 2
-#define ENCODER_B_PIN 3
+#define ENCODER_A_PIN 27
+#define ENCODER_B_PIN 26
 #define ENCODER_KNOB 1
 
 // SSD1306: SDA(33), SCL(35)

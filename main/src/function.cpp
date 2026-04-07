@@ -1,15 +1,13 @@
 #include <Arduino.h>
 
-#include "function.h"
 #include "config.h"
+#include "function.h"
 
-// local
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
-
 DISPLAYMENU DisplayMenu;
 
+MODE currentMode;
 uint8_t mac[6];
-bool knobHold;
 
 void begin()
 {
@@ -48,27 +46,36 @@ void begin()
 
 void setMode(MODE input)
 {
-    MODE Currentmode;
-
-    if (Currentmode != input)
+    if (currentMode == input)
         return;
     
     digitalWrite(MAX485_MODE_PIN, input);
 
-    DMXSerial.init(input ? DMXReceiver : DMXController);
+    // // DMXSerial.init(input ? DMXReceiver : DMXController);
+
+    currentMode = input;
+}
+
+void switchMode()
+{    
+    // MODE Newmode = (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER);
+
+    digitalWrite(MAX485_MODE_PIN, (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER));
+
+    DMXSerial.init(TRANSMITTER == currentMode ? DMXReceiver : DMXController);
+
+    currentMode = (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER);
 }
 
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
 {    
-    if ((DisplayMenu.mode != RECEIVER) || (sizeof(PACKET) != len))
+    if ((currentMode != RECEIVER) || (sizeof(PACKET) != len))
         return;
     
     PACKET *packet = (PACKET *)data;
 
     if ((packet->mode == TRANSMITTER) && (packet->universe == DisplayMenu.liveUniverse))
     {
-        setMode(DisplayMenu.mode);
-
         for (int i = 1; i <= 512; i++)
         {
             DMXSerial.write(3, packet->data[i]);
@@ -78,15 +85,13 @@ void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
 
 void handleSend()
 {
-    if (DisplayMenu.mode != TRANSMITTER)
+    if (currentMode != TRANSMITTER)
         return;
 
     PACKET Newpacket;
-
-    setMode(DisplayMenu.mode);
     
-    Newpacket.mode = DisplayMenu.mode;
-    Newpacket.universe = DisplayMenu.mode;
+    Newpacket.mode = currentMode;
+    Newpacket.universe = DisplayMenu.liveUniverse;
 
     for (int i = 1; i <= 512; i++)
     {
@@ -106,6 +111,8 @@ void updateDisplay()
     unsigned long now = millis();
     unsigned long lastKnobActivate;
 
+    bool readyForPush;
+
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
     display.setTextSize(2);
@@ -123,31 +130,33 @@ void updateDisplay()
 
     if (digitalRead(ENCODER_KNOB))
     {
-        if (knobHold)
+        if (readyForPush)
         {
-            if (((now * 2) / FLASH_RATE) % 2)
-            {
-                display.print(DisplayMenu.mode ? F("TX") : F("RX"));
-            }
-            // digitalWrite(15, (((now * 2) / FLASH_RATE) % 2));
-        
-            if ((now - lastKnobActivate) > 3000)
-            {
-                DisplayMenu.mode = (DisplayMenu.mode == TRANSMITTER) ? RECEIVER : TRANSMITTER;
-                knobHold = false;
-            }
+            lastKnobActivate = now;
+            readyForPush = false;
         }
         else
         {
-            knobHold = true;
-            lastKnobActivate = now;
+            if ((((now - lastKnobActivate) * 4) / FLASH_RATE) % 2)
+            {
+                display.print(currentMode ? F("TX") : F("RX"));
+            }
+
+            if ((now - lastKnobActivate) > 3000)
+            {
+                switchMode();
+
+                readyForPush = true;
+            }
         }
     }
     else
     {
-        knobHold = false;
-        display.print(DisplayMenu.mode ? F("TX") : F("RX"));
+        readyForPush = true;
+        display.print(currentMode ? F("TX") : F("RX"));
     }
+
+    digitalWrite(15, (((now * 2) / FLASH_RATE) % 2));
 
     display.setCursor(0, 16);
 
@@ -176,4 +185,3 @@ void updateDisplay()
 
     display.display();
 }
-

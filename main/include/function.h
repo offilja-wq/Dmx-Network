@@ -12,6 +12,8 @@ void begin();
 
 void setMode(MODE input);
 
+void switchMode();
+
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len);
 
 void handleSend();
