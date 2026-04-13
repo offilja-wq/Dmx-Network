@@ -12,6 +12,7 @@ void setup()
 void loop()
 {
     handleSend();
-
     updateDisplay();
+
+    delay(10);
 }

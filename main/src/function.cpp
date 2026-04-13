@@ -6,6 +6,7 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 DISPLAYMENU DisplayMenu;
 
+DMXESPSerial dmx;
 MODE currentMode;
 uint8_t mac[6];
 
@@ -16,9 +17,7 @@ void begin()
     WiFi.setSleep(false);
     
     if (esp_now_init() != ESP_OK)
-    {
         return;
-    }
 
     esp_now_peer_info_t broadcastPeer = {};
     broadcastPeer.channel = NETWORK_CHANNEL;
@@ -26,9 +25,7 @@ void begin()
     memcpy(broadcastPeer.peer_addr, BROADCAST_ADDRESS, sizeof(BROADCAST_ADDRESS));
 
     if ((esp_now_add_peer(&broadcastPeer) != ESP_OK )|| (esp_now_init() != ESP_OK))
-    {
         return;
-    }
 
     WiFi.macAddress(mac);
 
@@ -36,10 +33,12 @@ void begin()
                              {handleReceive(mac, data, len); });
 
 
-    // uart_set_pin(1, MAX485_DI, MAX485_RO, 18, 19);
+    // uart_set_pin(1, MAX485_DI, MAX485_RO, 18, 19); // Def main pins
 
     pinMode(MAX485_MODE_PIN, OUTPUT);
     pinMode(15, OUTPUT);
+
+    dmx.init(512, VIRTUAL_MAX485_MODE_PIN); // New
 
     display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
 }
@@ -51,20 +50,20 @@ void setMode(MODE input)
     
     digitalWrite(MAX485_MODE_PIN, input);
 
-    // // DMXSerial.init(input ? DMXReceiver : DMXController);
+    // DMXSerial.init(input ? DMXReceiver : DMXController); // Officially, this would be an initialisation
 
     currentMode = input;
 }
 
 void switchMode()
 {    
-    // MODE Newmode = (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER);
+    MODE Newmode = (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER);
 
     digitalWrite(MAX485_MODE_PIN, (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER));
 
-    DMXSerial.init(TRANSMITTER == currentMode ? DMXReceiver : DMXController);
+    // DMXSerial.init(TRANSMITTER == currentMode ? DMXReceiver : DMXController);
 
-    currentMode = (TRANSMITTER == currentMode ? RECEIVER : TRANSMITTER);
+    currentMode = (currentMode ? RECEIVER : TRANSMITTER);
 }
 
 void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
@@ -78,8 +77,11 @@ void handleReceive(const uint8_t *mac, const uint8_t *data, int len)
     {
         for (int i = 1; i <= 512; i++)
         {
-            DMXSerial.write(3, packet->data[i]);
+            // DMXSerial.write(i, packet->data[i]);
+            dmx.write(i, packet->data[i]);
         }
+
+        dmx.update();
     }
 }
 
@@ -93,9 +95,12 @@ void handleSend()
     Newpacket.mode = currentMode;
     Newpacket.universe = DisplayMenu.liveUniverse;
 
+    dmx.update();
+
     for (int i = 1; i <= 512; i++)
     {
-        Newpacket.data[i] = DMXSerial.read(i);
+        // Newpacket.data[i] = DMXSerial.read(i);
+        Newpacket.data[i] = dmx.read(i);
     }
 
     send(&Newpacket);

@@ -23,9 +23,12 @@ typedef struct
     uint8_t data[512];
 } PACKET;
 
-// MAX485
-#include <DMXSerial.h>
+// MAX485 - Arduino version (modded)
+// #include <DMXSerial.h>
 // #include <uart.h>
+
+// MAX485 - esp version
+#include <ESPDMX.h>
 
 // SSD1306
 #include <SPI.h>
@@ -51,7 +54,9 @@ typedef struct
 // GPIO
 
 // MAX485: RO(18), DI(17)
+// RX(37), TX(39)
 #define MAX485_MODE_PIN 6
+#define VIRTUAL_MAX485_MODE_PIN 7
 
 #define ENCODER_A_PIN 27
 #define ENCODER_B_PIN 26
